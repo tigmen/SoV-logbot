@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	log "log/slog"
-	"os"
-	"os/signal"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -69,9 +67,21 @@ func Start(ctx context.Context, App, Guild, Token *string) error {
 				"Failed close discord session",
 				log.String("Error", err.Error()),
 			)
+		} else {
+			log.LogAttrs(
+				ctx, log.LevelInfo,
+				"Discord session closed",
+			)
 		}
 	}()
 
+	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		log.LogAttrs(
+			ctx, log.LevelInfo,
+			"Discord session opened",
+			log.String("Name", r.User.Username),
+		)
+	})
 	session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
 
 		prevChId := "nil"
@@ -93,10 +103,6 @@ func Start(ctx context.Context, App, Guild, Token *string) error {
 	if err != nil {
 		return fmt.Errorf("Open session: %w", err)
 	}
-
-	sigch := make(chan os.Signal, 1)
-	signal.Notify(sigch, os.Interrupt)
-	<-sigch
 
 	return nil
 }

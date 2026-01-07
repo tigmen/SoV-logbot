@@ -6,9 +6,11 @@ import (
 	"log/slog"
 	log "log/slog"
 	"os"
+	"os/signal"
 
 	"github.com/tigmen/SoV-logbot/internal/discord"
-	logger "github.com/tigmen/SoV-logbot/internal/logger"
+	"github.com/tigmen/SoV-logbot/internal/telegram"
+	logger "github.com/tigmen/SoV-logbot/utils/logger"
 )
 
 func main() {
@@ -23,24 +25,47 @@ func main() {
 	logger := slog.New(handler)
 	slog.SetDefault(logger)
 
-	Token := flag.String("token", "", "Bot authentication token")
-	App := flag.String("app", "", "Application ID")
-	Guild := flag.String("guild", "", "Guild ID")
+	Ds_token := flag.String("ds-token", "", "Discord bot authentication token")
+	Ds_app := flag.String("ds-app", "", "Discord application ID")
+	Ds_guild := flag.String("ds-guild", "", "Discord guild ID")
+
+	Tg_token := flag.String("tg-token", "", "Telegram bot authentication token")
 
 	flag.Parse()
-	if *App == "" {
+	if *Ds_app == "" {
 		log.LogAttrs(
 			ctx, log.LevelError,
 			"Need appId",
 		)
+		os.Exit(1)
 	}
 
-	err := discord.Start(ctx, App, Guild, Token)
-	if err != nil {
-		log.LogAttrs(
-			ctx, log.LevelError,
-			"Failed start discord bot",
-			log.String("Error", err.Error()),
-		)
-	}
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
+
+	go func() {
+		err := discord.Start(ctx, Ds_app, Ds_guild, Ds_token)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Error discord session",
+				log.String("Error", err.Error()),
+			)
+			os.Exit(1)
+		}
+	}()
+
+	go func() {
+		err := telegram.Start(ctx, Tg_token)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Failed telegram session",
+				log.String("Error", err.Error()),
+			)
+			os.Exit(1)
+		}
+	}()
+
+	<-ctx.Done()
 }

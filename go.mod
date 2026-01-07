@@ -5,6 +5,7 @@ go 1.25.3
 require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/fatih/color v1.18.0
+	github.com/go-telegram/bot v1.17.0
 )
 
 require (
