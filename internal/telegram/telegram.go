@@ -2,6 +2,7 @@ package telegram
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/go-telegram/bot"
@@ -16,7 +17,7 @@ func Start(ctx context.Context, token *string) error {
 
 	b, err := bot.New(*token, opts...)
 	if err != nil {
-		panic(err)
+		return fmt.Errorf("Opening bot: %w", err)
 	}
 
 	b.Start(ctx)

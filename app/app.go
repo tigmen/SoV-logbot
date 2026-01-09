@@ -42,7 +42,6 @@ func main() {
 	}
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
 
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
@@ -55,7 +54,7 @@ func main() {
 				"Error discord session",
 				log.String("Error", err.Error()),
 			)
-			os.Exit(1)
+			cancel()
 		}
 	})
 
@@ -67,7 +66,7 @@ func main() {
 				"Failed telegram session",
 				log.String("Error", err.Error()),
 			)
-			os.Exit(1)
+			cancel()
 		}
 	})
 }
