@@ -21,6 +21,7 @@ func Start(ctx context.Context, token *string) error {
 
 	b.Start(ctx)
 
+	<-ctx.Done()
 	return nil
 }
 

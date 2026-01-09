@@ -7,6 +7,7 @@ import (
 	log "log/slog"
 	"os"
 	"os/signal"
+	"sync"
 
 	"github.com/tigmen/SoV-logbot/internal/discord"
 	"github.com/tigmen/SoV-logbot/internal/telegram"
@@ -43,7 +44,10 @@ func main() {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	go func() {
+	wg := sync.WaitGroup{}
+	defer wg.Wait()
+
+	wg.Go(func() {
 		err := discord.Start(ctx, Ds_app, Ds_guild, Ds_token)
 		if err != nil {
 			log.LogAttrs(
@@ -53,9 +57,9 @@ func main() {
 			)
 			os.Exit(1)
 		}
-	}()
+	})
 
-	go func() {
+	wg.Go(func() {
 		err := telegram.Start(ctx, Tg_token)
 		if err != nil {
 			log.LogAttrs(
@@ -65,7 +69,5 @@ func main() {
 			)
 			os.Exit(1)
 		}
-	}()
-
-	<-ctx.Done()
+	})
 }
