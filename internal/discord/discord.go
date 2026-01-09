@@ -104,5 +104,6 @@ func Start(ctx context.Context, App, Guild, Token *string) error {
 		return fmt.Errorf("Open session: %w", err)
 	}
 
+	<-ctx.Done()
 	return nil
 }
