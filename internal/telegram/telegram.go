@@ -3,6 +3,7 @@ package telegram
 import (
 	"context"
 	"fmt"
+	log "log/slog"
 	"time"
 
 	"github.com/go-telegram/bot"
@@ -20,9 +21,33 @@ func Start(ctx context.Context, token *string) error {
 		return fmt.Errorf("Opening bot: %w", err)
 	}
 
+	name, err := b.GetMyName(ctx, &bot.GetMyNameParams{
+		LanguageCode: "ru",
+	})
+	if err != nil {
+		return fmt.Errorf("Getting bot name: %w", err)
+	}
+
+	log.LogAttrs(
+		ctx, log.LevelInfo,
+		"Telegram session opened",
+		log.String("Name", name.Name),
+	)
+
 	b.Start(ctx)
 
 	<-ctx.Done()
+
+	ok, err := b.Close(ctx)
+	if err != nil || !ok {
+		return fmt.Errorf("Closing bot: %w", err)
+	}
+
+	log.LogAttrs(
+		ctx, log.LevelInfo,
+		"Telegram session closed",
+	)
+
 	return nil
 }
 
