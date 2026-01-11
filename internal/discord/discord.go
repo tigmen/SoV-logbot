@@ -5,6 +5,7 @@ import (
 	"fmt"
 	log "log/slog"
 	"strings"
+	"sync"
 
 	"github.com/bwmarrin/discordgo"
 )
@@ -45,7 +46,7 @@ func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optio
 	}
 }
 
-func Start(ctx context.Context, App, Guild, Token *string) error {
+func Start(ctx context.Context, wg *sync.WaitGroup, App, Guild, Token *string) error {
 	log.LogAttrs(
 		ctx, log.LevelDebug,
 		"Authentication data",
@@ -104,6 +105,5 @@ func Start(ctx context.Context, App, Guild, Token *string) error {
 		return fmt.Errorf("Open session: %w", err)
 	}
 
-	<-ctx.Done()
 	return nil
 }

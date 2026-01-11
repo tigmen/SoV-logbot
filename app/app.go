@@ -44,30 +44,28 @@ func main() {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	wg := sync.WaitGroup{}
+	wg := &sync.WaitGroup{}
 	defer wg.Wait()
 
-	wg.Go(func() {
-		err := discord.Start(ctx, Ds_app, Ds_guild, Ds_token)
-		if err != nil {
-			log.LogAttrs(
-				ctx, log.LevelError,
-				"Error discord session",
-				log.String("Error", err.Error()),
-			)
-			cancel()
-		}
-	})
+	err := discord.Start(ctx, wg, Ds_app, Ds_guild, Ds_token)
+	if err != nil {
+		log.LogAttrs(
+			ctx, log.LevelError,
+			"Error discord session",
+			log.String("Error", err.Error()),
+		)
+		cancel()
+	}
 
-	wg.Go(func() {
-		err := telegram.Start(ctx, Tg_token)
-		if err != nil {
-			log.LogAttrs(
-				ctx, log.LevelError,
-				"Failed telegram session",
-				log.String("Error", err.Error()),
-			)
-			cancel()
-		}
-	})
+	send, err := telegram.Start(ctx, wg, Tg_token)
+	if err != nil {
+		log.LogAttrs(
+			ctx, log.LevelError,
+			"Failed telegram session",
+			log.String("Error", err.Error()),
+		)
+		cancel()
+	}
+
+	send("msg")
 }
