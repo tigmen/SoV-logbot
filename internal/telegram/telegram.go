@@ -38,11 +38,6 @@ func Start(ctx context.Context, token *string) error {
 
 	<-ctx.Done()
 
-	ok, err := b.Close(ctx)
-	if err != nil || !ok {
-		return fmt.Errorf("Closing bot: %w", err)
-	}
-
 	log.LogAttrs(
 		ctx, log.LevelInfo,
 		"Telegram session closed",
