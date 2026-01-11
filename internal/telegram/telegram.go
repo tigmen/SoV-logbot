@@ -45,13 +45,15 @@ func Start(ctx context.Context, token *string) error {
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	log.LogAttrs(ctx, log.LevelDebug,
-		"Telegram message",
-		log.String("From", update.Message.From.Username),
-		log.String("Text", update.Message.Text),
-		log.String("Thread ID", fmt.Sprint(update.ChannelPost)),
-		log.Int("Message ID", update.Message.ID),
-	)
+	if update.Message != nil {
+		log.LogAttrs(ctx, log.LevelDebug,
+			"Telegram message",
+			log.String("From", update.Message.From.Username),
+			log.String("Text", update.Message.Text),
+			log.String("Thread ID", fmt.Sprint(update.ChannelPost)),
+			log.Int("Message ID", update.Message.ID),
+		)
+	}
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text:   update.Message.Text,
