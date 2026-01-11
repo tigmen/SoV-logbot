@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	log "log/slog"
-	"os"
-	"os/signal"
 	"time"
 
 	"github.com/go-telegram/bot"
@@ -13,9 +11,6 @@ import (
 )
 
 func Start(ctx context.Context, token *string) error {
-	_ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-
 	opts := []bot.Option{
 		bot.WithDefaultHandler(handler),
 		bot.WithCheckInitTimeout(time.Second),
@@ -41,7 +36,7 @@ func Start(ctx context.Context, token *string) error {
 
 	b.Start(ctx)
 
-	<-_ctx.Done()
+	<-ctx.Done()
 
 	ok, err := b.Close(ctx)
 	if err != nil || !ok {

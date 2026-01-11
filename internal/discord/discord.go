@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 	log "log/slog"
-	"os"
-	"os/signal"
 	"strings"
 
 	"github.com/bwmarrin/discordgo"
@@ -48,9 +46,6 @@ func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optio
 }
 
 func Start(ctx context.Context, App, Guild, Token *string) error {
-	_ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-
 	log.LogAttrs(
 		ctx, log.LevelDebug,
 		"Authentication data",
@@ -109,6 +104,6 @@ func Start(ctx context.Context, App, Guild, Token *string) error {
 		return fmt.Errorf("Open session: %w", err)
 	}
 
-	<-_ctx.Done()
+	<-ctx.Done()
 	return nil
 }

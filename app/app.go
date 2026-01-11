@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	log "log/slog"
 	"os"
+	"os/signal"
 	"sync"
 
 	"github.com/tigmen/SoV-logbot/internal/discord"
@@ -40,6 +41,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
 
@@ -51,6 +54,7 @@ func main() {
 				"Error discord session",
 				log.String("Error", err.Error()),
 			)
+			cancel()
 		}
 	})
 
@@ -62,6 +66,7 @@ func main() {
 				"Failed telegram session",
 				log.String("Error", err.Error()),
 			)
+			cancel()
 		}
 	})
 }
