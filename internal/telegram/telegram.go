@@ -21,15 +21,15 @@ func Start(ctx context.Context, token *string) error {
 		return fmt.Errorf("Opening bot: %w", err)
 	}
 
-	name, err := b.GetMyName(ctx, &bot.GetMyNameParams{})
+	user, err := b.GetMe(ctx)
 	if err != nil {
-		return fmt.Errorf("Getting bot name: %w", err)
+		return fmt.Errorf("Getting bot GetMe: %w", err)
 	}
 
 	log.LogAttrs(
 		ctx, log.LevelInfo,
 		"Telegram session opened",
-		log.String("Name", name.Name),
+		log.String("Name", user.Username),
 	)
 
 	b.Start(ctx)
@@ -45,6 +45,11 @@ func Start(ctx context.Context, token *string) error {
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	log.LogAttrs(ctx, log.LevelDebug,
+		"Telegram message",
+		log.String("From", update.Message.From.Username),
+		log.String("Text", update.Message.Text),
+	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
 		Text:   update.Message.Text,
