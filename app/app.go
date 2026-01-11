@@ -42,6 +42,7 @@ func main() {
 	}
 
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
 
 	wg := sync.WaitGroup{}
 	defer wg.Wait()
