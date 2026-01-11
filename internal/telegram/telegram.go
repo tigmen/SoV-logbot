@@ -21,9 +21,7 @@ func Start(ctx context.Context, token *string) error {
 		return fmt.Errorf("Opening bot: %w", err)
 	}
 
-	name, err := b.GetMyName(ctx, &bot.GetMyNameParams{
-		LanguageCode: "ru",
-	})
+	name, err := b.GetMyName(ctx, &bot.GetMyNameParams{})
 	if err != nil {
 		return fmt.Errorf("Getting bot name: %w", err)
 	}
