@@ -49,7 +49,7 @@ func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
 		"Telegram message",
 		log.String("From", update.Message.From.Username),
 		log.String("Text", update.Message.Text),
-		log.Int("Thread ID", update.ChannelPost.MessageThreadID),
+		log.String("Thread ID", fmt.Sprint(update.ChannelPost)),
 		log.Int("Message ID", update.Message.ID),
 	)
 	b.SendMessage(ctx, &bot.SendMessageParams{
