@@ -5,21 +5,20 @@ import (
 	"fmt"
 	log "log/slog"
 	"sync"
-	"time"
 
 	"github.com/go-telegram/bot"
-	"github.com/go-telegram/bot/models"
 )
 
 const (
 	chatID = 1417379260
 )
 
-func Start(ctx context.Context, wg *sync.WaitGroup, token *string) (func(string), error) {
-	opts := []bot.Option{
-		bot.WithDefaultHandler(handler),
-		bot.WithCheckInitTimeout(time.Second),
-	}
+type Bot struct {
+	bot *bot.Bot
+}
+
+func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error) {
+	opts := []bot.Option{}
 
 	b, err := bot.New(*token, opts...)
 	if err != nil {
@@ -48,17 +47,15 @@ func Start(ctx context.Context, wg *sync.WaitGroup, token *string) (func(string)
 		)
 	})
 
-	send := func(text string) {
-		b.SendMessage(
-			ctx, &bot.SendMessageParams{
-				ChatID: chatID,
-				Text:   text,
-			},
-		)
-	}
-
-	return send, nil
+	return &Bot{bot: b}, nil
 }
 
-func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (b Bot) SendMessage(ctx context.Context, chatid int, text string) {
+	b.bot.SendMessage(
+		ctx,
+		&bot.SendMessageParams{
+			ChatID: chatid,
+			Text:   text,
+		},
+	)
 }

@@ -4,51 +4,18 @@ import (
 	"context"
 	"fmt"
 	log "log/slog"
-	"strings"
-	"sync"
 
 	"github.com/bwmarrin/discordgo"
+	"github.com/tigmen/SoV-logbot/internal/service"
 )
 
-type optionMap = map[string]*discordgo.ApplicationCommandInteractionDataOption
-
-func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) (om optionMap) {
-	om = make(optionMap)
-	for _, opt := range options {
-		om[opt.Name] = opt
-	}
-	return
+type Bot struct {
+	session *discordgo.Session
 }
 
-func interactionAuthor(i *discordgo.Interaction) *discordgo.User {
-	if i.Member != nil {
-		return i.Member.User
-	}
-	return i.User
-}
-
-func handleEcho(s *discordgo.Session, i *discordgo.InteractionCreate, opts optionMap) {
-	builder := new(strings.Builder)
-	if v, ok := opts["author"]; ok && v.BoolValue() {
-		author := interactionAuthor(i.Interaction)
-		builder.WriteString("**" + author.String() + "** says: ")
-	}
-	builder.WriteString(opts["message"].StringValue())
-
-	err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-		Type: discordgo.InteractionResponseChannelMessageWithSource,
-		Data: &discordgo.InteractionResponseData{
-			Content: builder.String(),
-		},
-	})
-
-	if err != nil {
-	}
-}
-
-func Start(ctx context.Context, wg *sync.WaitGroup, App, Guild, Token *string) error {
+func NewBot(ctx context.Context, App, Guild, Token *string) (*Bot, error) {
 	log.LogAttrs(
-		ctx, log.LevelDebug,
+		ctx, log.LevelInfo,
 		"Authentication data",
 		log.String("App", *App),
 		log.String("Guild", *Guild),
@@ -57,52 +24,90 @@ func Start(ctx context.Context, wg *sync.WaitGroup, App, Guild, Token *string) e
 
 	session, err := discordgo.New("Bot " + *Token)
 	if err != nil {
-		return fmt.Errorf("Create new session: %w", err)
+		return nil, fmt.Errorf("Create new session: %w", err)
 	}
 
-	defer func() {
-		err := session.Close()
-		if err != nil {
-			log.LogAttrs(
-				ctx, log.LevelError,
-				"Failed close discord session",
-				log.String("Error", err.Error()),
-			)
-		} else {
-			log.LogAttrs(
-				ctx, log.LevelInfo,
-				"Discord session closed",
-			)
-		}
-	}()
+	session.Identify.Intents = discordgo.MakeIntent(
+		discordgo.IntentsGuilds | discordgo.IntentsGuildVoiceStates,
+	)
 
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+	return &Bot{session: session}, nil
+}
+
+func (b Bot) Start(ctx context.Context, svc *service.Service) error {
+	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
 		log.LogAttrs(
 			ctx, log.LevelInfo,
 			"Discord session opened",
 			log.String("Name", r.User.Username),
 		)
 	})
-	session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
 
-		prevChId := "nil"
-		if r.BeforeUpdate != nil {
-			prevChId = r.BeforeUpdate.ChannelID
+	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
+		guild, err := s.State.Guild(r.GuildID)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Error getting guild",
+				log.String("Error", err.Error()),
+			)
 		}
 
-		log.LogAttrs(
-			ctx, log.LevelInfo,
-			"Update user voice state",
-			log.String("Username", r.Member.User.Username),
-			log.String("Nick", r.Member.Nick),
-			log.Bool("Muted", r.SelfMute),
-			log.String("Actual channel ID", r.ChannelID),
-			log.String("Previous channel ID", prevChId),
-		)
+		voice_channel := make(map[string]service.VoiceChannel)
+		for _, vs := range guild.VoiceStates {
+			if vs.ChannelID != "" {
+				users, ok := voice_channel[vs.ChannelID]
+				if !ok {
+					V_Ch, err := s.State.Channel(vs.ChannelID)
+					if err != nil {
+						log.LogAttrs(
+							ctx, log.LevelError,
+							"Error getting voice channel",
+							log.String("Error", err.Error()),
+						)
+					}
+
+					users = service.VoiceChannel{
+						Name:    V_Ch.Name,
+						Members: make([]string, 0),
+					}
+				}
+
+				users.Members = append(users.Members, vs.Member.User.Username)
+				voice_channel[vs.ChannelID] = users
+			}
+
+			log.LogAttrs(
+				ctx, log.LevelDebug,
+				"Debug guild voice states",
+				log.String("GuildID", guild.ID),
+				log.String("Username", vs.Member.User.Username),
+				log.String("Voice channel ID", vs.ChannelID),
+				log.String("Voice channel name", voice_channel[vs.ChannelID].Name),
+			)
+		}
+
+		svc.UpdateChannel(voice_channel)
 	})
-	err = session.Open()
+
+	err := b.session.Open()
 	if err != nil {
 		return fmt.Errorf("Open session: %w", err)
+	}
+
+	return nil
+}
+
+func (b Bot) Stop(ctx context.Context) error {
+
+	err := b.session.Close()
+	if err != nil {
+		return err
+	} else {
+		log.LogAttrs(
+			ctx, log.LevelInfo,
+			"Discord session closed",
+		)
 	}
 
 	return nil

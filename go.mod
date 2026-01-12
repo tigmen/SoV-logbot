@@ -6,6 +6,7 @@ require (
 	github.com/bwmarrin/discordgo v0.29.0
 	github.com/fatih/color v1.18.0
 	github.com/go-telegram/bot v1.17.0
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
