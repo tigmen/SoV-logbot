@@ -53,11 +53,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
-	defer cancel()
-
 	wg := &sync.WaitGroup{}
 	defer wg.Wait()
+
+	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
+	defer cancel()
 
 	tg, err := telegram.NewBot(ctx, wg, TG_TOKEN)
 	if err != nil {

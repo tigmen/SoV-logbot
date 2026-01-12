@@ -36,7 +36,9 @@ func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error
 		log.String("Name", user.Username),
 	)
 
-	b.Start(ctx)
+	wg.Go(func() {
+		b.Start(ctx)
+	})
 
 	wg.Go(func() {
 		<-ctx.Done()
