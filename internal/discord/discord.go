@@ -111,11 +111,17 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 		err = svc.UpdateChannel(ctx, guild.ID, voice_channel)
 		if err != nil {
-			log.LogAttrs(
-				ctx, log.LevelError,
-				"Error sending telegram message",
-				log.String("Error", err.Error()),
-			)
+			errtext := err.Error()
+			switch errtext {
+			case "syncerror":
+
+			default:
+				log.LogAttrs(
+					ctx, log.LevelError,
+					"Error sending telegram message",
+					log.String("Error", err.Error()),
+				)
+			}
 		}
 	})
 

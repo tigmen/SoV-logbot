@@ -78,3 +78,18 @@ func (b Bot) EditMessage(ctx context.Context, chatid string, messageid int, text
 
 	return message.ID, nil
 }
+
+func (b Bot) DeleteMessage(ctx context.Context, chatid string, messageid int) (bool, error) {
+	ok, err := b.bot.DeleteMessage(
+		ctx,
+		&bot.DeleteMessageParams{
+			ChatID:    chatid,
+			MessageID: messageid,
+		},
+	)
+	if err != nil {
+		return false, err
+	}
+
+	return ok, nil
+}

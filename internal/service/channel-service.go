@@ -36,7 +36,7 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 		gid, _ok := s.channel[guildID]
 		if _ok {
 			_, ok := s.message[key]
-			if !ok {
+			if !ok && len(value.Members) > 0 {
 				log.LogAttrs(
 					ctx, log.LevelDebug,
 					"New channel-message",
@@ -53,16 +53,26 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 
 				s.message[key] = id
 			} else {
-				_, err := s.bot.EditMessage(
-					ctx, gid, s.message[key],
-					fmt.Sprintf("%s: %v", value.Name, value.Members),
-				)
-				if err != nil {
-					return err
+				if len(value.Members) > 0 {
+					_, err := s.bot.EditMessage(
+						ctx, gid, s.message[key],
+						fmt.Sprintf("%s: %v", value.Name, value.Members),
+					)
+					if err != nil {
+						return err
+					}
+				} else {
+					_, err := s.bot.DeleteMessage(
+						ctx, gid, s.message[key],
+					)
+					if err != nil {
+						return err
+					}
+
 				}
 			}
 		} else {
-			//
+			return fmt.Errorf("syncerror")
 		}
 	}
 
