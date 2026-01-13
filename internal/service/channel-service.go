@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	log "log/slog"
 
 	"github.com/tigmen/SoV-logbot/internal/telegram"
@@ -34,14 +35,18 @@ func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceCha
 	for key, value := range updates {
 		_, ok := s.message[key]
 		if !ok {
-			log.LogAttrs(
-				ctx, log.LevelDebug,
-				"New channel-message",
-				log.String("key", key),
-				log.String("channel", s.channel[key]),
-				log.String("name", value.Name),
-			)
-			s.bot.SendMessage(ctx, s.channel[key], value.Name)
+			name, _ok := s.channel[key]
+			if _ok {
+				log.LogAttrs(
+					ctx, log.LevelDebug,
+					"New channel-message",
+					log.String("key", key),
+					log.String("channel id", name),
+					log.String("channel name", value.Name),
+					log.String("channel members", fmt.Sprint(value.Members)),
+				)
+				s.bot.SendMessage(ctx, value.Name, value.Members[0])
+			}
 		}
 	}
 }
