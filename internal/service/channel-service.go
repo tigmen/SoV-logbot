@@ -62,13 +62,14 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 						return err
 					}
 				} else {
+					delete(s.message, key)
+
 					_, err := s.bot.DeleteMessage(
 						ctx, gid, s.message[key],
 					)
 					if err != nil {
 						return err
 					}
-
 				}
 			}
 		} else {
