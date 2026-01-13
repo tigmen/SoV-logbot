@@ -102,6 +102,16 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 		}
 
 		for _, vs := range guild.VoiceStates {
+			if vs.Member == nil || vs.Member.User == nil {
+				log.LogAttrs(
+					ctx, log.LevelWarn,
+					"Voice state update has nil member or user",
+					log.String("GuildID", guild.ID),
+					log.String("UserID", vs.UserID),
+				)
+				continue
+			}
+
 			if vs.ChannelID != "" {
 				users, ok := voice_channel[vs.ChannelID]
 				if !ok {
