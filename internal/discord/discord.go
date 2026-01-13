@@ -65,6 +65,10 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	})
 
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
+		if r.ChannelID == r.BeforeUpdate.ChannelID {
+			return
+		}
+
 		log.LogAttrs(
 			ctx, log.LevelDebug,
 			"Voice State Update",
