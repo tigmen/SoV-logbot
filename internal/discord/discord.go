@@ -63,12 +63,14 @@ func NewBot(ctx context.Context, App, Token *string) (*Bot, error) {
 	)
 
 	for _, guild := range session.State.Guilds {
-		session.ApplicationCommandBulkOverwrite(
+		_, err := session.ApplicationCommandBulkOverwrite(
 			*App,
 			guild.ID,
 			commands,
 		)
-
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Bot{session: session}, nil
