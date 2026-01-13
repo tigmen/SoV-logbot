@@ -87,7 +87,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 			)
 		}
 
-		svc.UpdateChannel(voice_channel)
+		svc.UpdateChannel(ctx, voice_channel)
 	})
 
 	err := b.session.Open()

@@ -9,10 +9,6 @@ import (
 	"github.com/go-telegram/bot"
 )
 
-const (
-	chatID = 1417379260
-)
-
 type Bot struct {
 	bot *bot.Bot
 }
@@ -52,12 +48,23 @@ func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error
 	return &Bot{bot: b}, nil
 }
 
-func (b Bot) SendMessage(ctx context.Context, chatid int, text string) {
+func (b Bot) SendMessage(ctx context.Context, chatid any, text string) {
 	b.bot.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
 			ChatID: chatid,
 			Text:   text,
+		},
+	)
+}
+
+func (b Bot) EditMessage(ctx context.Context, chatid any, messageid int, text string) {
+	b.bot.EditMessageText(
+		ctx,
+		&bot.EditMessageTextParams{
+			ChatID:    chatid,
+			MessageID: messageid,
+			Text:      text,
 		},
 	)
 }
