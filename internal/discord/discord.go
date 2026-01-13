@@ -13,38 +13,6 @@ type Bot struct {
 	session *discordgo.Session
 }
 
-var commands = []*discordgo.ApplicationCommand{
-	{
-		Name:        "sync",
-		Description: "Synchronize this discord server with your telegram group",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Name:        "Group ID",
-				Description: "Telegram ID of your group",
-				Type:        discordgo.ApplicationCommandOptionString,
-				Required:    true,
-			},
-			{
-				Name:        "Thread ID",
-				Description: "Telegram ID for thread in your group",
-				Type:        discordgo.ApplicationCommandOptionInteger,
-			},
-		},
-	},
-	{
-		Name:        "register",
-		Description: "Synchronize your telegram username with your discord username",
-		Options: []*discordgo.ApplicationCommandOption{
-			{
-				Name:        "Username",
-				Description: "Your telegram username without '@': \"@example\" - \"example\"",
-				Type:        discordgo.ApplicationCommandOptionString,
-				Required:    true,
-			},
-		},
-	},
-}
-
 func NewBot(ctx context.Context, App, Token *string) (*Bot, error) {
 	log.LogAttrs(
 		ctx, log.LevelInfo,
@@ -164,6 +132,21 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 					log.String("Error", err.Error()),
 				)
 			}
+		}
+	})
+
+	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.InteractionCreate) {
+		if r.Type != discordgo.InteractionApplicationCommand {
+			return
+		}
+
+		data := r.ApplicationCommandData()
+
+		switch data.Name {
+		case "sync":
+			handleSync(ctx, svc, s, r, parseOptions(data.Options))
+		case "register":
+			handleRegister(ctx, svc, s, r, parseOptions(data.Options))
 		}
 	})
 

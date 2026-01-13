@@ -48,12 +48,13 @@ func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error
 	return &Bot{bot: b}, nil
 }
 
-func (b Bot) SendMessage(ctx context.Context, chatid string, text string) (int, error) {
+func (b Bot) SendMessage(ctx context.Context, chatid string, threadid int, text string) (int, error) {
 	message, err := b.bot.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
-			ChatID: chatid,
-			Text:   text,
+			ChatID:          chatid,
+			MessageThreadID: threadid,
+			Text:            text,
 		},
 	)
 	if err != nil {

@@ -16,6 +16,7 @@ type VoiceChannel struct {
 type Service struct {
 	bot     *telegram.Bot
 	channel map[string]string
+	thread  map[string]int
 	message map[string]int
 }
 
@@ -23,6 +24,7 @@ func New(bot *telegram.Bot) *Service {
 	return &Service{
 		bot:     bot,
 		channel: make(map[string]string),
+		thread:  make(map[string]int),
 		message: make(map[string]int),
 	}
 }
@@ -35,7 +37,11 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 	for key, value := range updates {
 		gid, _ok := s.channel[guildID]
 		if _ok {
-			_, ok := s.message[key]
+			threadid, ok := s.thread[guildID]
+			if !ok {
+				threadid = 0
+			}
+			_, ok = s.message[key]
 			if !ok && len(value.Members) > 0 {
 				log.LogAttrs(
 					ctx, log.LevelDebug,
@@ -46,7 +52,7 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 					log.String("channel members", fmt.Sprint(value.Members)),
 				)
 
-				id, err := s.bot.SendMessage(ctx, gid, fmt.Sprint(value.Members))
+				id, err := s.bot.SendMessage(ctx, gid, threadid, fmt.Sprint(value.Members))
 				if err != nil {
 					return err
 				}
@@ -78,4 +84,15 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 	}
 
 	return nil
+}
+
+func (s *Service) Sync(guildid, chatid string, threadid int) {
+	s.channel[guildid] = chatid
+	if threadid != 0 {
+		s.thread[guildid] = threadid
+	}
+}
+
+func (s *Service) Register(dsus, tgus string) {
+	//
 }
