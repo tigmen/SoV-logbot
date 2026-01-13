@@ -1,8 +1,6 @@
 package discord
 
 import (
-	"context"
-
 	"github.com/bwmarrin/discordgo"
 	"github.com/tigmen/SoV-logbot/internal/service"
 )
@@ -13,13 +11,13 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "Synchronize this discord server with your telegram group",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Name:        "Group ID",
+				Name:        "group-id",
 				Description: "Telegram ID of your group",
 				Type:        discordgo.ApplicationCommandOptionString,
 				Required:    true,
 			},
 			{
-				Name:        "Thread ID",
+				Name:        "thread-id",
 				Description: "Telegram ID for thread in your group",
 				Type:        discordgo.ApplicationCommandOptionInteger,
 			},
@@ -30,7 +28,7 @@ var commands = []*discordgo.ApplicationCommand{
 		Description: "Synchronize your telegram username with your discord username",
 		Options: []*discordgo.ApplicationCommandOption{
 			{
-				Name:        "Username",
+				Name:        "username",
 				Description: "Your telegram username without '@': \"@example\" - \"example\"",
 				Type:        discordgo.ApplicationCommandOptionString,
 				Required:    true,
@@ -47,16 +45,16 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	return m
 }
 
-func handleSync(ctx context.Context, svc *service.Service, s *discordgo.Session, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
-	v, ok := m["Thread ID"]
+func handleSync(svc *service.Service, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
+	v, ok := m["thread-id"]
 	threadid := 0
 	if ok {
 		threadid = int(v.IntValue())
 	}
 
-	svc.Sync(r.GuildID, m["Group ID"].StringValue(), threadid)
+	svc.Sync(r.GuildID, m["group-id"].StringValue(), threadid)
 }
 
-func handleRegister(ctx context.Context, svc *service.Service, s *discordgo.Session, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
-	svc.Register(r.User.Username, m["Username"].StringValue())
+func handleRegister(svc *service.Service, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
+	svc.Register(r.User.Username, m["username"].StringValue())
 }
