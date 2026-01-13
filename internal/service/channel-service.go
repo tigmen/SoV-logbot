@@ -36,6 +36,7 @@ func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceCha
 		ctx, log.LevelDebug,
 		"Update Channel",
 		log.String("channel sync", fmt.Sprint(s.channel)),
+		log.String("updates", fmt.Sprint(updates)),
 	)
 
 	for key, value := range updates {
