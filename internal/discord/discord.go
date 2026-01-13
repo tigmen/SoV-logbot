@@ -87,7 +87,14 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 			)
 		}
 
-		svc.UpdateChannel(ctx, guild.ID, voice_channel)
+		err = svc.UpdateChannel(ctx, guild.ID, voice_channel)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Error sending telegram message",
+				log.String("Error", err.Error()),
+			)
+		}
 	})
 
 	err := b.session.Open()

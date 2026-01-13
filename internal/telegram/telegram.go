@@ -48,14 +48,19 @@ func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error
 	return &Bot{bot: b}, nil
 }
 
-func (b Bot) SendMessage(ctx context.Context, chatid any, text string) {
-	b.bot.SendMessage(
+func (b Bot) SendMessage(ctx context.Context, chatid any, text string) (int, error) {
+	message, err := b.bot.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
 			ChatID: chatid,
 			Text:   text,
 		},
 	)
+	if err != nil {
+		return -1, err
+	}
+
+	return message.ID, nil
 }
 
 func (b Bot) EditMessage(ctx context.Context, chatid any, messageid int, text string) {
