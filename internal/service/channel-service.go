@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"fmt"
+	log "log/slog"
 
 	"github.com/tigmen/SoV-logbot/internal/telegram"
 )
@@ -30,6 +32,12 @@ func (s *Service) SyncChannel(chname string, chatid any) {
 }
 
 func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceChannel) {
+	log.LogAttrs(
+		ctx, log.LevelDebug,
+		"Update Channel",
+		log.String("channel sync", fmt.Sprint(s.channel)),
+	)
+
 	for key, value := range updates {
 		_, ok := s.message[key]
 		if !ok {
