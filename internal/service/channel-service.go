@@ -41,11 +41,11 @@ func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceCha
 					ctx, log.LevelDebug,
 					"New channel-message",
 					log.String("key", key),
-					log.String("channel id", name),
+					log.String("group id", name),
 					log.String("channel name", value.Name),
 					log.String("channel members", fmt.Sprint(value.Members)),
 				)
-				s.bot.SendMessage(ctx, value.Name, value.Members[0])
+				s.bot.SendMessage(ctx, name, value.Members[0])
 			}
 		}
 	}
