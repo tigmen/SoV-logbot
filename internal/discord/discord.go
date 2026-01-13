@@ -155,9 +155,9 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 		switch data.Name {
 		case "sync":
-			handleSync(svc, r, parseOptions(data.Options))
+			handleSync(svc, s, r, parseOptions(data.Options))
 		case "register":
-			handleRegister(svc, r, parseOptions(data.Options))
+			handleRegister(svc, s, r, parseOptions(data.Options))
 		}
 	})
 
