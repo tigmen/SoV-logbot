@@ -93,7 +93,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 			voice_channel[r.BeforeUpdate.ChannelID] = service.VoiceChannel{
 				Name:    v_Ch.Name,
-				Members: make([]string, 0),
+				Members: make([]service.User, 0),
 			}
 		}
 
@@ -109,6 +109,16 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 			}
 
 			if vs.ChannelID != "" {
+				user, err := s.User(vs.UserID)
+				if err != nil {
+					log.LogAttrs(
+						ctx, log.LevelError,
+						"Error getting user",
+						log.String("UserID", vs.UserID),
+						log.String("Error", err.Error()),
+					)
+				}
+
 				users, ok := voice_channel[vs.ChannelID]
 				if !ok {
 					V_Ch, err := s.State.Channel(vs.ChannelID)
@@ -122,11 +132,14 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 					users = service.VoiceChannel{
 						Name:    V_Ch.Name,
-						Members: make([]string, 0),
+						Members: make([]service.User, 0),
 					}
 				}
 
-				users.Members = append(users.Members, vs.Member.User.Username)
+				users.Members = append(users.Members, service.User{
+					Username: user.Username,
+					Muted:    vs.Mute || vs.SelfMute || vs.Deaf || vs.SelfDeaf,
+				})
 				voice_channel[vs.ChannelID] = users
 			}
 
