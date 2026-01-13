@@ -55,27 +55,25 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 		voice_channel := make(map[string]service.VoiceChannel)
 		for _, vs := range guild.VoiceStates {
-			if vs.ChannelID != "" {
-				users, ok := voice_channel[vs.ChannelID]
-				if !ok {
-					V_Ch, err := s.State.Channel(vs.ChannelID)
-					if err != nil {
-						log.LogAttrs(
-							ctx, log.LevelError,
-							"Error getting voice channel",
-							log.String("Error", err.Error()),
-						)
-					}
-
-					users = service.VoiceChannel{
-						Name:    V_Ch.Name,
-						Members: make([]string, 0),
-					}
+			users, ok := voice_channel[vs.ChannelID]
+			if !ok {
+				V_Ch, err := s.State.Channel(vs.ChannelID)
+				if err != nil {
+					log.LogAttrs(
+						ctx, log.LevelError,
+						"Error getting voice channel",
+						log.String("Error", err.Error()),
+					)
 				}
 
-				users.Members = append(users.Members, vs.Member.User.Username)
-				voice_channel[vs.ChannelID] = users
+				users = service.VoiceChannel{
+					Name:    V_Ch.Name,
+					Members: make([]string, 0),
+				}
 			}
+
+			users.Members = append(users.Members, vs.Member.User.Username)
+			voice_channel[vs.ChannelID] = users
 
 			log.LogAttrs(
 				ctx, log.LevelDebug,
