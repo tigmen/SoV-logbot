@@ -31,12 +31,12 @@ func (s *Service) SyncChannel(chname string, chatid string) {
 	s.channel[chname] = chatid
 }
 
-func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceChannel) {
+func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map[string]VoiceChannel) {
 	for key, value := range updates {
-		_, ok := s.message[key]
-		if !ok {
-			name, _ok := s.channel[key]
-			if _ok {
+		name, _ok := s.channel[guildID]
+		if _ok {
+			_, ok := s.message[key]
+			if !ok {
 				log.LogAttrs(
 					ctx, log.LevelDebug,
 					"New channel-message",
@@ -47,6 +47,8 @@ func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceCha
 				)
 				s.bot.SendMessage(ctx, name, value.Members[0])
 			}
+		} else {
+			//
 		}
 	}
 }
