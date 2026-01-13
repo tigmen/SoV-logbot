@@ -41,7 +41,7 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 			builder := strings.Builder{}
 			fmt.Fprintf(&builder, "🌐 %s:\n", value.Name)
 			for _, mem := range value.Members {
-				fmt.Fprintf(&builder, "🔈 %s", mem)
+				fmt.Fprintf(&builder, "🔈 %s\n", mem)
 			}
 			threadid, ok := s.thread[guildID]
 			if !ok {
