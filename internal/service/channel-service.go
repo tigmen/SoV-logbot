@@ -58,7 +58,12 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 					log.String("channel members", fmt.Sprint(value.Members)),
 				)
 
-				id, err := s.bot.SendMessage(ctx, gid, threadid, fmt.Sprint(value.Members))
+				id, err := s.bot.SendMessage(
+					ctx, gid,
+					threadid,
+					builder.String(),
+				)
+
 				if err != nil {
 					return err
 				}
@@ -68,7 +73,7 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 				if len(value.Members) > 0 {
 					_, err := s.bot.EditMessage(
 						ctx, gid, s.message[key],
-						fmt.Sprintf("%s: %v", value.Name, value.Members),
+						builder.String(),
 					)
 					if err != nil {
 						return err
