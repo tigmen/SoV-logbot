@@ -44,6 +44,11 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	})
 
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.VoiceStateUpdate) {
+		log.LogAttrs(
+			ctx, log.LevelDebug,
+			"Voice State Update",
+			log.String("Username", r.Member.User.Username),
+		)
 		guild, err := s.State.Guild(r.GuildID)
 		if err != nil {
 			log.LogAttrs(
@@ -55,25 +60,27 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 		voice_channel := make(map[string]service.VoiceChannel)
 		for _, vs := range guild.VoiceStates {
-			users, ok := voice_channel[vs.ChannelID]
-			if !ok {
-				V_Ch, err := s.State.Channel(vs.ChannelID)
-				if err != nil {
-					log.LogAttrs(
-						ctx, log.LevelError,
-						"Error getting voice channel",
-						log.String("Error", err.Error()),
-					)
+			if vs.ChannelID != "" {
+				users, ok := voice_channel[vs.ChannelID]
+				if !ok {
+					V_Ch, err := s.State.Channel(vs.ChannelID)
+					if err != nil {
+						log.LogAttrs(
+							ctx, log.LevelError,
+							"Error getting voice channel",
+							log.String("Error", err.Error()),
+						)
+					}
+
+					users = service.VoiceChannel{
+						Name:    V_Ch.Name,
+						Members: make([]string, 0),
+					}
 				}
 
-				users = service.VoiceChannel{
-					Name:    V_Ch.Name,
-					Members: make([]string, 0),
-				}
+				users.Members = append(users.Members, vs.Member.User.Username)
+				voice_channel[vs.ChannelID] = users
 			}
-
-			users.Members = append(users.Members, vs.Member.User.Username)
-			voice_channel[vs.ChannelID] = users
 
 			log.LogAttrs(
 				ctx, log.LevelDebug,
