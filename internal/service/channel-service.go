@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	log "log/slog"
 
 	"github.com/tigmen/SoV-logbot/internal/telegram"
@@ -15,19 +14,19 @@ type VoiceChannel struct {
 
 type Service struct {
 	bot     *telegram.Bot
-	channel map[string]any
+	channel map[string]string
 	message map[string]int
 }
 
 func New(bot *telegram.Bot) *Service {
 	return &Service{
 		bot:     bot,
-		channel: make(map[string]any),
+		channel: make(map[string]string),
 		message: make(map[string]int),
 	}
 }
 
-func (s *Service) SyncChannel(chname string, chatid any) {
+func (s *Service) SyncChannel(chname string, chatid string) {
 	s.channel[chname] = chatid
 }
 
@@ -39,7 +38,7 @@ func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceCha
 				ctx, log.LevelDebug,
 				"New channel-message",
 				log.String("key", key),
-				log.String("channel", fmt.Sprint(s.channel[key])),
+				log.String("channel", s.channel[key]),
 				log.String("name", value.Name),
 			)
 			s.bot.SendMessage(ctx, s.channel[key], value.Name)

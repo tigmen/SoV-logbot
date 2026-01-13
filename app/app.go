@@ -107,7 +107,7 @@ func main() {
 		}
 	}()
 
-	svc.SyncChannel("Voice_test_1", int64(-1003581757738))
+	svc.SyncChannel("Voice_test_1", "-1003581757738")
 
 	<-ctx.Done()
 }
