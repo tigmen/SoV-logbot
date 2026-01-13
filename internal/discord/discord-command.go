@@ -45,7 +45,7 @@ func parseOptions(options []*discordgo.ApplicationCommandInteractionDataOption) 
 	return m
 }
 
-func handleSync(svc *service.Service, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
+func handleSync(svc *service.Service, s *discordgo.Session, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
 	v, ok := m["thread-id"]
 	threadid := 0
 	if ok {
@@ -53,8 +53,27 @@ func handleSync(svc *service.Service, r *discordgo.InteractionCreate, m map[stri
 	}
 
 	svc.Sync(r.GuildID, m["group-id"].StringValue(), threadid)
+
+	s.InteractionRespond(
+		r.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "This Guild syncronizated with your Group",
+			},
+		},
+	)
 }
 
-func handleRegister(svc *service.Service, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
+func handleRegister(svc *service.Service, s *discordgo.Session, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
 	svc.Register(r.User.Username, m["username"].StringValue())
+	s.InteractionRespond(
+		r.Interaction,
+		&discordgo.InteractionResponse{
+			Type: discordgo.InteractionResponseChannelMessageWithSource,
+			Data: &discordgo.InteractionResponseData{
+				Content: "Register complete",
+			},
+		},
+	)
 }
