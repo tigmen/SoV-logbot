@@ -13,12 +13,43 @@ type Bot struct {
 	session *discordgo.Session
 }
 
-func NewBot(ctx context.Context, App, Guild, Token *string) (*Bot, error) {
+var commands = []*discordgo.ApplicationCommand{
+	{
+		Name:        "sync",
+		Description: "Synchronize this discord server with your telegram group",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Name:        "Group ID",
+				Description: "Telegram ID of your group",
+				Type:        discordgo.ApplicationCommandOptionString,
+				Required:    true,
+			},
+			{
+				Name:        "Thread ID",
+				Description: "Telegram ID for thread in your group",
+				Type:        discordgo.ApplicationCommandOptionInteger,
+			},
+		},
+	},
+	{
+		Name:        "register",
+		Description: "Synchronize your telegram username with your discord username",
+		Options: []*discordgo.ApplicationCommandOption{
+			{
+				Name:        "Username",
+				Description: "Your telegram username without '@': \"@example\" - \"example\"",
+				Type:        discordgo.ApplicationCommandOptionString,
+				Required:    true,
+			},
+		},
+	},
+}
+
+func NewBot(ctx context.Context, App, Token *string) (*Bot, error) {
 	log.LogAttrs(
 		ctx, log.LevelInfo,
 		"Authentication data",
 		log.String("App", *App),
-		log.String("Guild", *Guild),
 		log.String("Token", *Token),
 	)
 
@@ -30,6 +61,15 @@ func NewBot(ctx context.Context, App, Guild, Token *string) (*Bot, error) {
 	session.Identify.Intents = discordgo.MakeIntent(
 		discordgo.IntentsGuilds | discordgo.IntentsGuildVoiceStates,
 	)
+
+	for _, guild := range session.State.Guilds {
+		session.ApplicationCommandBulkOverwrite(
+			*App,
+			guild.ID,
+			commands,
+		)
+
+	}
 
 	return &Bot{session: session}, nil
 }

@@ -40,7 +40,6 @@ func main() {
 
 	DS_TOKEN := flag.String("ds-token", os.Getenv("DS_TOKEN"), "Discord bot authentication token")
 	DS_APP := flag.String("ds-app", os.Getenv("DS_APP"), "Discord application ID")
-	DS_GUILD := flag.String("ds-guild", os.Getenv("DS_GUILD"), "Discord guild ID")
 
 	TG_TOKEN := flag.String("tg-token", os.Getenv("TG_TOKEN"), "Telegram bot authentication token")
 
@@ -70,7 +69,7 @@ func main() {
 		cancel()
 	}
 
-	bot, err := discord.NewBot(ctx, DS_APP, DS_GUILD, DS_TOKEN)
+	bot, err := discord.NewBot(ctx, DS_APP, DS_TOKEN)
 	if err != nil {
 		log.LogAttrs(
 			ctx, log.LevelError,
