@@ -32,16 +32,16 @@ func (s *Service) SyncChannel(chname string, chatid any) {
 }
 
 func (s *Service) UpdateChannel(ctx context.Context, updates map[string]VoiceChannel) {
-	log.LogAttrs(
-		ctx, log.LevelDebug,
-		"Update Channel",
-		log.String("channel sync", fmt.Sprint(s.channel)),
-		log.String("updates", fmt.Sprint(updates)),
-	)
-
 	for key, value := range updates {
 		_, ok := s.message[key]
 		if !ok {
+			log.LogAttrs(
+				ctx, log.LevelDebug,
+				"New channel-message",
+				log.String("key", key),
+				log.String("channel", fmt.Sprint(s.channel[key])),
+				log.String("name", value.Name),
+			)
 			s.bot.SendMessage(ctx, s.channel[key], value.Name)
 		}
 	}
