@@ -70,7 +70,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 				)
 			}
 
-			voice_channel[r.ChannelID] = service.VoiceChannel{
+			voice_channel[r.BeforeUpdate.ChannelID] = service.VoiceChannel{
 				Name:    v_Ch.Name,
 				Members: make([]string, 0),
 			}
