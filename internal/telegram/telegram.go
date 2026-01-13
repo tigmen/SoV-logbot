@@ -48,7 +48,7 @@ func NewBot(ctx context.Context, wg *sync.WaitGroup, token *string) (*Bot, error
 	return &Bot{bot: b}, nil
 }
 
-func (b Bot) SendMessage(ctx context.Context, chatid any, text string) (int, error) {
+func (b Bot) SendMessage(ctx context.Context, chatid string, text string) (int, error) {
 	message, err := b.bot.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
@@ -63,8 +63,8 @@ func (b Bot) SendMessage(ctx context.Context, chatid any, text string) (int, err
 	return message.ID, nil
 }
 
-func (b Bot) EditMessage(ctx context.Context, chatid any, messageid int, text string) {
-	b.bot.EditMessageText(
+func (b Bot) EditMessage(ctx context.Context, chatid string, messageid int, text string) (int, error) {
+	message, err := b.bot.EditMessageText(
 		ctx,
 		&bot.EditMessageTextParams{
 			ChatID:    chatid,
@@ -72,4 +72,9 @@ func (b Bot) EditMessage(ctx context.Context, chatid any, messageid int, text st
 			Text:      text,
 		},
 	)
+	if err != nil {
+		return -1, err
+	}
+
+	return message.ID, nil
 }
