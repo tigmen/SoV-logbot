@@ -10,6 +10,8 @@ import (
 )
 
 type Bot struct {
+	appid   string
+	token   string
 	session *discordgo.Session
 }
 
@@ -30,22 +32,31 @@ func NewBot(ctx context.Context, App, Token *string) (*Bot, error) {
 		discordgo.IntentsGuilds | discordgo.IntentsGuildVoiceStates,
 	)
 
-	for _, guild := range session.State.Guilds {
-		_, err := session.ApplicationCommandBulkOverwrite(
-			*App,
-			guild.ID,
-			commands,
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return &Bot{session: session}, nil
+	return &Bot{
+			session: session,
+			appid:   *App,
+			token:   *Token,
+		},
+		nil
 }
 
 func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) {
+		for _, guild := range s.State.Guilds {
+			_, err := s.ApplicationCommandBulkOverwrite(
+				b.appid,
+				guild.ID,
+				commands,
+			)
+			if err != nil {
+				log.LogAttrs(
+					ctx, log.LevelError,
+					"Error Overwrite Discord Application Commands",
+					log.String("Error", err.Error()),
+				)
+			}
+		}
+
 		log.LogAttrs(
 			ctx, log.LevelInfo,
 			"Discord session opened",
