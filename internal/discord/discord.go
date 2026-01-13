@@ -60,7 +60,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 		voice_channel := make(map[string]service.VoiceChannel)
 
-		V_Ch, err := s.State.Channel(r.ChannelID)
+		v_Ch, err := s.State.Channel(r.ChannelID)
 		if err != nil {
 			log.LogAttrs(
 				ctx, log.LevelError,
@@ -70,7 +70,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 		}
 
 		voice_channel[r.ChannelID] = service.VoiceChannel{
-			Name:    V_Ch.Name,
+			Name:    v_Ch.Name,
 			Members: make([]string, 0),
 		}
 
