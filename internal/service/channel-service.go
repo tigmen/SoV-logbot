@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	log "log/slog"
+	"strings"
 
 	"github.com/tigmen/SoV-logbot/internal/telegram"
 )
@@ -37,6 +38,11 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 	for key, value := range updates {
 		gid, _ok := s.channel[guildID]
 		if _ok {
+			builder := strings.Builder{}
+			fmt.Fprintf(&builder, "🌐 %s:\n", value.Name)
+			for _, mem := range value.Members {
+				fmt.Fprintf(&builder, "🔈 %s", mem)
+			}
 			threadid, ok := s.thread[guildID]
 			if !ok {
 				threadid = 0
