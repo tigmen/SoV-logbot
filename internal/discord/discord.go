@@ -98,16 +98,6 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 		}
 
 		for _, vs := range guild.VoiceStates {
-			if vs.Member == nil || vs.Member.User == nil {
-				log.LogAttrs(
-					ctx, log.LevelWarn,
-					"Voice state update has nil member or user",
-					log.String("GuildID", guild.ID),
-					log.String("UserID", vs.UserID),
-				)
-				continue
-			}
-
 			if vs.ChannelID != "" {
 				user, err := s.User(vs.UserID)
 				if err != nil {
@@ -184,6 +174,14 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 		}
 	})
 
+	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.PresenceUpdate) {
+		log.LogAttrs(
+			ctx, log.LevelDebug,
+			"User started activity",
+			log.String("User", r.User.Username),
+			log.String("Activities", fmt.Sprint(r.Activities)),
+		)
+	})
 	err := b.session.Open()
 	if err != nil {
 		return fmt.Errorf("Open session: %w", err)

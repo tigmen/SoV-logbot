@@ -66,14 +66,14 @@ func handleSync(svc *service.Service, s *discordgo.Session, r *discordgo.Interac
 }
 
 func handleRegister(svc *service.Service, s *discordgo.Session, r *discordgo.InteractionCreate, m map[string]*discordgo.ApplicationCommandInteractionDataOption) {
-	svc.Register(r.User.Username, m["username"].StringValue())
-	s.InteractionRespond(
-		r.Interaction,
-		&discordgo.InteractionResponse{
-			Type: discordgo.InteractionResponseChannelMessageWithSource,
-			Data: &discordgo.InteractionResponseData{
-				Content: "Register complete",
-			},
-		},
-	)
+	// svc.Register(r.User.Username, m["username"].StringValue())
+	// s.InteractionRespond(
+	// 	r.Interaction,
+	// 	&discordgo.InteractionResponse{
+	// 		Type: discordgo.InteractionResponseChannelMessageWithSource,
+	// 		Data: &discordgo.InteractionResponseData{
+	// 			Content: "Register complete",
+	// 		},
+	// 	},
+	// )
 }
