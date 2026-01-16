@@ -25,25 +25,25 @@ type VoiceChannel struct {
 type Guild struct {
 	groupID      string
 	threadID     int
-	voiceChannel map[string]VoiceChannel
+	voiceChannel map[string]*VoiceChannel
 }
 
 type Service struct {
 	bot   *telegram.Bot
-	guild map[string]Guild
+	guild map[string]*Guild
 }
 
 func New(bot *telegram.Bot) *Service {
 	return &Service{
 		bot:   bot,
-		guild: make(map[string]Guild),
+		guild: make(map[string]*Guild),
 	}
 }
 
 func (s *Service) SyncChannel(chname string, chatid string) {
-	s.guild[chname] = Guild{
+	s.guild[chname] = &Guild{
 		groupID:      chname,
-		voiceChannel: make(map[string]VoiceChannel),
+		voiceChannel: make(map[string]*VoiceChannel),
 	}
 }
 
@@ -86,6 +86,7 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 					return err
 				}
 
+				voice = &value
 				voice.messageID = id
 			} else {
 				if len(value.Members) > 0 {
@@ -116,10 +117,10 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 }
 
 func (s *Service) Sync(guildid, chatid string, threadid int) {
-	s.guild[guildid] = Guild{
+	s.guild[guildid] = &Guild{
 		groupID:      chatid,
 		threadID:     threadid,
-		voiceChannel: make(map[string]VoiceChannel),
+		voiceChannel: make(map[string]*VoiceChannel),
 	}
 }
 
