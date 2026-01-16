@@ -66,7 +66,11 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 			}
 
 			voice, ok := guild.voiceChannel[key]
-			if !ok && len(value.Members) > 0 {
+			if !ok {
+				if len(value.Members) <= 0 {
+					continue
+				}
+
 				log.LogAttrs(
 					ctx, log.LevelDebug,
 					"New channel-message",
