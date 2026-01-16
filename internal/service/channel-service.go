@@ -86,8 +86,8 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 					return err
 				}
 
+				value.messageID = id
 				voice = &value
-				voice.messageID = id
 			} else {
 				if len(value.Members) > 0 {
 					_, err := s.bot.EditMessage(
