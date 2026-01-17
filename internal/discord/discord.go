@@ -182,6 +182,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 					ctx, log.LevelDebug,
 					"User started activity",
 					log.String("User", r.User.Username),
+					log.String("UserID", r.User.ID),
 					log.String("Activity", activity.Name),
 					log.String("State", activity.State),
 				)
