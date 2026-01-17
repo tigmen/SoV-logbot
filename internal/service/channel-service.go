@@ -18,7 +18,7 @@ type User struct {
 
 type VoiceChannel struct {
 	Name      string
-	Members   []User
+	Members   map[string]User
 	messageID int
 }
 
@@ -31,6 +31,7 @@ type Guild struct {
 type Service struct {
 	bot   *telegram.Bot
 	guild map[string]*Guild
+	users map[string]string
 }
 
 func New(bot *telegram.Bot) *Service {
@@ -47,80 +48,107 @@ func (s *Service) SyncChannel(chname string, chatid string) {
 	}
 }
 
-func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
-	for key, value := range updates {
-		guild, ok := s.guild[guildID]
-		if ok {
-			builder := strings.Builder{}
-			fmt.Fprintf(&builder, "🌐 %s:\n", value.Name)
-			for _, mem := range value.Members {
-				if mem.Muted || mem.Deaf {
-					fmt.Fprint(&builder, "🔇")
-				} else {
-					fmt.Fprint(&builder, "🔈")
-				}
-				fmt.Fprintf(&builder, " %s\n", mem.Username)
-				if mem.Activity != "" {
-					fmt.Fprintf(&builder, " 🕹%s\n", mem.Activity)
-				}
+func (s *Service) Update(ctx context.Context, guildID string, channelID string, update VoiceChannel) error {
+	guild, ok := s.guild[guildID]
+	if ok {
+		builder := strings.Builder{}
+		fmt.Fprintf(&builder, "🌐 %s:\n", update.Name)
+		for _, mem := range update.Members {
+			if mem.Muted || mem.Deaf {
+				fmt.Fprint(&builder, "🔇")
+			} else {
+				fmt.Fprint(&builder, "🔈")
+			}
+			fmt.Fprintf(&builder, " %s\n", mem.Username)
+			if mem.Activity != "" {
+				fmt.Fprintf(&builder, " 🕹%s\n", mem.Activity)
+			}
+		}
+
+		voice, ok := guild.voiceChannel[channelID]
+		if !ok {
+			if len(update.Members) <= 0 {
+				return nil
 			}
 
-			voice, ok := guild.voiceChannel[key]
-			if !ok {
-				if len(value.Members) <= 0 {
-					continue
-				}
+			log.LogAttrs(
+				ctx, log.LevelDebug,
+				"New channel-message",
+				log.String("channelID", channelID),
+				log.String("group id", guild.groupID),
+				log.String("channel name", update.Name),
+				log.String("channel members", fmt.Sprint(update.Members)),
+			)
 
-				log.LogAttrs(
-					ctx, log.LevelDebug,
-					"New channel-message",
-					log.String("key", key),
-					log.String("group id", guild.groupID),
-					log.String("channel name", value.Name),
-					log.String("channel members", fmt.Sprint(value.Members)),
-				)
+			id, err := s.bot.SendMessage(
+				ctx, guild.groupID,
+				guild.threadID,
+				builder.String(),
+			)
 
-				id, err := s.bot.SendMessage(
-					ctx, guild.groupID,
-					guild.threadID,
+			if err != nil {
+				return err
+			}
+
+			update.messageID = id
+			guild.voiceChannel[channelID] = &update
+		} else {
+			if len(update.Members) > 0 {
+				_, err := s.bot.EditMessage(
+					ctx, guild.groupID, voice.messageID,
 					builder.String(),
 				)
-
+				if err != nil {
+					return err
+				}
+			} else {
+				_, err := s.bot.DeleteMessage(
+					ctx, guild.groupID, voice.messageID,
+				)
 				if err != nil {
 					return err
 				}
 
-				value.messageID = id
-				guild.voiceChannel[key] = &value
-			} else {
-				if len(value.Members) > 0 {
-					_, err := s.bot.EditMessage(
-						ctx, guild.groupID, voice.messageID,
-						builder.String(),
-					)
-					if err != nil {
-						return err
-					}
-				} else {
-					_, err := s.bot.DeleteMessage(
-						ctx, guild.groupID, voice.messageID,
-					)
-					if err != nil {
-						return err
-					}
-
-					delete(guild.voiceChannel, key)
-				}
+				delete(guild.voiceChannel, channelID)
 			}
-		} else {
-			return fmt.Errorf("syncerror")
 		}
+	} else {
+		return fmt.Errorf("syncerror")
+	}
+
+	return nil
+}
+func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
+	for key, value := range updates {
+		s.Update(ctx, guildID, key, value)
 	}
 
 	return nil
 }
 
-func (s *Service) ActivityUpdate(ctx context.Context, guildID string, activity map[string]VoiceChannel) error {
+func (s *Service) ActivityUpdate(ctx context.Context, guildID, channelID, username, activity string) error {
+	s.users[username] = activity
+	guild, ok := s.guild[guildID]
+	if !ok {
+		return nil
+	}
+
+	ch, ok := guild.voiceChannel[channelID]
+	if !ok {
+		return nil
+	}
+
+	user, ok := ch.Members[username]
+	if !ok {
+		return nil
+	}
+
+	user.Activity = activity
+
+	err := s.Update(ctx, guildID, channelID, *ch)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

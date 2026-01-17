@@ -94,7 +94,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 			voice_channel[r.BeforeUpdate.ChannelID] = service.VoiceChannel{
 				Name:    v_Ch.Name,
-				Members: make([]service.User, 0),
+				Members: make(map[string]service.User, 0),
 			}
 		}
 
@@ -123,14 +123,14 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 					users = service.VoiceChannel{
 						Name:    V_Ch.Name,
-						Members: make([]service.User, 0),
+						Members: make(map[string]service.User, 0),
 					}
 				}
 
-				users.Members = append(users.Members, service.User{
+				users.Members[user.Username] = service.User{
 					Username: user.Username,
 					Muted:    vs.Mute || vs.SelfMute || vs.Deaf || vs.SelfDeaf,
-				})
+				}
 				voice_channel[vs.ChannelID] = users
 			}
 
@@ -176,18 +176,19 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	})
 
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.PresenceUpdate) {
+		name := ""
+		user, err := s.User(r.User.ID)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Error getting user",
+				log.String("Error", err.Error()),
+			)
+			return
+		}
+
 		for _, activity := range r.Activities {
 			if activity.Type == discordgo.ActivityTypeGame {
-				user, err := s.User(r.User.ID)
-				if err != nil {
-					log.LogAttrs(
-						ctx, log.LevelError,
-						"Error getting user",
-						log.String("Error", err.Error()),
-					)
-					return
-				}
-
 				log.LogAttrs(
 					ctx, log.LevelDebug,
 					"User started activity",
@@ -196,8 +197,54 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 					log.String("Activity", activity.Name),
 					log.String("State", activity.State),
 				)
+
+				name = activity.Name
+				break
 			}
 		}
+
+		guild, err := s.State.Guild(r.GuildID)
+		if err != nil {
+			log.LogAttrs(
+				ctx, log.LevelError,
+				"Error getting guild",
+				log.String("Error", err.Error()),
+			)
+		}
+
+		for _, vs := range guild.VoiceStates {
+			if vs.ChannelID != "" {
+				_user, err := s.User(vs.UserID)
+				if err != nil {
+					log.LogAttrs(
+						ctx, log.LevelError,
+						"Error getting user",
+						log.String("UserID", vs.UserID),
+						log.String("Error", err.Error()),
+					)
+				}
+
+				if _user.ID == user.ID {
+					err = svc.ActivityUpdate(ctx, r.GuildID, vs.ChannelID, user.Username, name)
+					if err != nil {
+						errtext := err.Error()
+						switch errtext {
+						case "syncerror":
+
+						default:
+							log.LogAttrs(
+								ctx, log.LevelError,
+								"Error sending telegram message",
+								log.String("Error", err.Error()),
+							)
+						}
+					}
+
+					return
+				}
+			}
+		}
+
 	})
 
 	err := b.session.Open()
