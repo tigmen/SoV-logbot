@@ -94,7 +94,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 			voice_channel[r.BeforeUpdate.ChannelID] = service.VoiceChannel{
 				Name:    v_Ch.Name,
-				Members: make(map[string]service.User, 0),
+				Members: make(map[string]*service.User, 0),
 			}
 		}
 
@@ -123,11 +123,11 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 
 					users = service.VoiceChannel{
 						Name:    V_Ch.Name,
-						Members: make(map[string]service.User, 0),
+						Members: make(map[string]*service.User, 0),
 					}
 				}
 
-				users.Members[user.Username] = service.User{
+				users.Members[user.Username] = &service.User{
 					Username: user.Username,
 					Muted:    vs.Mute || vs.SelfMute || vs.Deaf || vs.SelfDeaf,
 				}

@@ -18,7 +18,7 @@ type User struct {
 
 type VoiceChannel struct {
 	Name      string
-	Members   map[string]User
+	Members   map[string]*User
 	messageID int
 }
 
@@ -31,7 +31,6 @@ type Guild struct {
 type Service struct {
 	bot   *telegram.Bot
 	guild map[string]*Guild
-	users map[string]string
 }
 
 func New(bot *telegram.Bot) *Service {
@@ -127,7 +126,6 @@ func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[s
 }
 
 func (s *Service) ActivityUpdate(ctx context.Context, guildID, channelID, username, activity string) error {
-	s.users[username] = activity
 	guild, ok := s.guild[guildID]
 	if !ok {
 		return nil
