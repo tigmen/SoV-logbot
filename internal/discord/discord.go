@@ -178,11 +178,21 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.PresenceUpdate) {
 		for _, activity := range r.Activities {
 			if activity.Type == discordgo.ActivityTypeGame {
+				user, err := s.User(r.User.ID)
+				if err != nil {
+					log.LogAttrs(
+						ctx, log.LevelError,
+						"Error getting user",
+						log.String("Error", err.Error()),
+					)
+					return
+				}
+
 				log.LogAttrs(
 					ctx, log.LevelDebug,
 					"User started activity",
-					log.String("User", r.User.Username),
-					log.String("UserID", r.User.ID),
+					log.String("User", user.Username),
+					log.String("UserID", user.ID),
 					log.String("Activity", activity.Name),
 					log.String("State", activity.State),
 				)
