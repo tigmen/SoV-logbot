@@ -60,7 +60,7 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 			}
 			fmt.Fprintf(&builder, " %s\n", mem.Username)
 			if mem.Activity != "" {
-				fmt.Fprintf(&builder, " 🕹%s\n", mem.Activity)
+				fmt.Fprintf(&builder, "∟🕹%s\n", mem.Activity)
 			}
 		}
 
