@@ -29,7 +29,8 @@ func NewBot(ctx context.Context, App, Token *string) (*Bot, error) {
 	}
 
 	session.Identify.Intents = discordgo.MakeIntent(
-		discordgo.IntentsGuilds | discordgo.IntentsGuildVoiceStates,
+		discordgo.IntentsGuilds | discordgo.IntentsGuildVoiceStates |
+			discordgo.IntentsGuildPresences | discordgo.IntentGuildMembers,
 	)
 
 	return &Bot{
@@ -182,6 +183,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 			log.String("Activities", fmt.Sprint(r.Activities)),
 		)
 	})
+
 	err := b.session.Open()
 	if err != nil {
 		return fmt.Errorf("Open session: %w", err)
