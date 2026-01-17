@@ -47,7 +47,7 @@ func (s *Service) SyncChannel(chname string, chatid string) {
 	}
 }
 
-func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
+func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
 	for key, value := range updates {
 		guild, ok := s.guild[guildID]
 		if ok {
@@ -117,6 +117,10 @@ func (s *Service) UpdateChannel(ctx context.Context, guildID string, updates map
 		}
 	}
 
+	return nil
+}
+
+func (s *Service) ActivityUpdate(ctx context.Context, guildID string, activity map[string]VoiceChannel) error {
 	return nil
 }
 

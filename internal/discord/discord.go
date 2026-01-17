@@ -144,7 +144,7 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 			)
 		}
 
-		err = svc.UpdateChannel(ctx, guild.ID, voice_channel)
+		err = svc.VoiceUpdate(ctx, guild.ID, voice_channel)
 		if err != nil {
 			errtext := err.Error()
 			switch errtext {
@@ -176,12 +176,17 @@ func (b Bot) Start(ctx context.Context, svc *service.Service) error {
 	})
 
 	b.session.AddHandler(func(s *discordgo.Session, r *discordgo.PresenceUpdate) {
-		log.LogAttrs(
-			ctx, log.LevelDebug,
-			"User started activity",
-			log.String("User", r.User.Username),
-			log.String("Activities", fmt.Sprint(r.Activities)),
-		)
+		for _, activity := range r.Activities {
+			if activity.Type == discordgo.ActivityTypeGame {
+				log.LogAttrs(
+					ctx, log.LevelDebug,
+					"User started activity",
+					log.String("User", r.User.Username),
+					log.String("Activity", activity.Name),
+					log.String("State", activity.State),
+				)
+			}
+		}
 	})
 
 	err := b.session.Open()
