@@ -29,16 +29,14 @@ type Guild struct {
 }
 
 type Service struct {
-	bot    *telegram.Bot
-	guild  map[string]*Guild
-	member map[string]string
+	bot   *telegram.Bot
+	guild map[string]*Guild
 }
 
 func New(bot *telegram.Bot) *Service {
 	return &Service{
-		bot:    bot,
-		guild:  make(map[string]*Guild),
-		member: make(map[string]string),
+		bot:   bot,
+		guild: make(map[string]*Guild),
 	}
 }
 
@@ -92,7 +90,6 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 			}
 
 			update.messageID = id
-			guild.voiceChannel[channelID] = &update
 		} else {
 			if len(update.Members) > 0 {
 				_, err := s.bot.EditMessage(
@@ -113,22 +110,16 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 				delete(guild.voiceChannel, channelID)
 			}
 		}
+		guild.voiceChannel[channelID] = &update
 	} else {
 		return fmt.Errorf("syncerror")
 	}
 
 	return nil
 }
+
 func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
 	for key, value := range updates {
-		for _, mem := range value.Members {
-			activity, ok := s.member[mem.Username]
-			if !ok {
-				continue
-			}
-
-			mem.Activity = activity
-		}
 		s.Update(ctx, guildID, key, value)
 	}
 
@@ -151,7 +142,6 @@ func (s *Service) ActivityUpdate(ctx context.Context, guildID, channelID, userna
 		return nil
 	}
 
-	s.member[username] = activity
 	user.Activity = activity
 
 	err := s.Update(ctx, guildID, channelID, *ch)
