@@ -92,13 +92,15 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 			update.messageID = id
 		} else {
 			if len(update.Members) > 0 {
-				_, err := s.bot.EditMessage(
+				id, err := s.bot.EditMessage(
 					ctx, guild.groupID, voice.messageID,
 					builder.String(),
 				)
 				if err != nil {
 					return err
 				}
+
+				update.messageID = id
 			} else {
 				_, err := s.bot.DeleteMessage(
 					ctx, guild.groupID, voice.messageID,
