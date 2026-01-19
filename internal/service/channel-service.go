@@ -125,13 +125,13 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 
 func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
 	for key, value := range updates {
-		for _, mem := range value.Members {
+		for i, mem := range value.Members {
 			activity, ok := s.member[mem.Username]
 			if !ok {
 				continue
 			}
 
-			mem.Activity = activity
+			value.Members[i].Activity = activity
 		}
 
 		s.Update(ctx, guildID, key, value)
