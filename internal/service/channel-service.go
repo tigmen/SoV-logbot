@@ -29,14 +29,16 @@ type Guild struct {
 }
 
 type Service struct {
-	bot   *telegram.Bot
-	guild map[string]*Guild
+	bot    *telegram.Bot
+	guild  map[string]*Guild
+	member map[string]string
 }
 
 func New(bot *telegram.Bot) *Service {
 	return &Service{
-		bot:   bot,
-		guild: make(map[string]*Guild),
+		bot:    bot,
+		guild:  make(map[string]*Guild),
+		member: make(map[string]string),
 	}
 }
 
@@ -123,6 +125,15 @@ func (s *Service) Update(ctx context.Context, guildID string, channelID string, 
 
 func (s *Service) VoiceUpdate(ctx context.Context, guildID string, updates map[string]VoiceChannel) error {
 	for key, value := range updates {
+		for _, mem := range value.Members {
+			activity, ok := s.member[mem.Username]
+			if !ok {
+				continue
+			}
+
+			mem.Activity = activity
+		}
+
 		s.Update(ctx, guildID, key, value)
 	}
 
